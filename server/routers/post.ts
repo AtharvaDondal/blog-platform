@@ -155,15 +155,16 @@ export const postRouter = router({
     .mutation(async ({ input }) => {
       const { id, categoryIds, ...updateData } = input;
 
-      // Generate new slug if title changed
-      if (updateData.title) {
-        updateData.slug = generateSlug(updateData.title);
-      }
+      // Generate new slug if title changed — build a separate payload instead of mutating typed updateData
+      const updatePayload = {
+        ...updateData,
+        ...(updateData.title ? { slug: generateSlug(updateData.title) } : {}),
+      };
 
       const [updatedPost] = await db
         .update(posts)
         .set({
-          ...updateData,
+          ...updatePayload,
           updatedAt: new Date(),
         })
         .where(eq(posts.id, id))
